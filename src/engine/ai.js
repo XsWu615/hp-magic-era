@@ -1,7 +1,7 @@
 // DeepSeek API 调用层。前端请求 /api/...，由 Vite 代理转发到 api.deepseek.com 并注入密钥。
 
 const ENDPOINT = '/api/chat/completions'
-const MODEL = 'deepseek-v4-pro'
+const MODEL = 'deepseek-v4-flash'
 
 // 构建发给模型的消息序列
 export function buildMessages(systemPrompt, history, userText) {
@@ -15,20 +15,30 @@ export function buildMessages(systemPrompt, history, userText) {
 
 // 流式请求，逐段 yield 增量文本
 export async function* streamChat(messages, { signal } = {}) {
-  const res = await fetch(ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: MODEL,
-      messages,
-      temperature: 0.85,
-      max_tokens: 2200,
-      stream: true,
-    }),
-    signal,
-  })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 180000)
+
+  let res
+  try {
+    res = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MODEL,
+        messages,
+        temperature: 0.85,
+        max_tokens: 3000,
+        stream: true,
+      }),
+      signal: controller.signal,
+    })
+  } catch (e) {
+    clearTimeout(timer)
+    throw new Error(e.name === 'AbortError' ? '响应超时，请重试' : e.message)
+  }
 
   if (!res.ok) {
+    clearTimeout(timer)
     const text = await res.text()
     throw new Error(`DeepSeek API 错误 ${res.status}: ${text}`)
   }
@@ -37,25 +47,29 @@ export async function* streamChat(messages, { signal } = {}) {
   const decoder = new TextDecoder()
   let buffer = ''
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop() ?? ''
-    for (const line of lines) {
-      const t = line.trim()
-      if (!t.startsWith('data:')) continue
-      const data = t.slice(5).trim()
-      if (data === '[DONE]') return
-      try {
-        const json = JSON.parse(data)
-        const delta = json.choices?.[0]?.delta?.content
-        if (delta) yield delta
-      } catch {
-        // 忽略无法解析的行
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
+      for (const line of lines) {
+        const t = line.trim()
+        if (!t.startsWith('data:')) continue
+        const data = t.slice(5).trim()
+        if (data === '[DONE]') return
+        try {
+          const json = JSON.parse(data)
+          const delta = json.choices?.[0]?.delta?.content
+          if (delta) yield delta
+        } catch {
+          // 忽略无法解析的行
+        }
       }
     }
+  } finally {
+    clearTimeout(timer)
   }
 }
 

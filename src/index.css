@@ -268,11 +268,12 @@ body {
 }
 
 .msg-user {
-  display: flex;
-  justify-content: flex-end;
+  text-align: right;
 }
 
 .user-bubble {
+  display: inline-block;
+  text-align: left;
   background: var(--accent-dim);
   border: 1px solid rgba(139, 124, 240, 0.3);
   color: #cfc7ff;
