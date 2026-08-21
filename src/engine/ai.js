@@ -59,19 +59,85 @@ export async function* streamChat(messages, { signal } = {}) {
   }
 }
 
-// 从完整文本中提取状态更新 JSON 块（```json ... ```）
-export function extractStatePatch(text) {
-  const m = text.match(/```json\s*([\s\S]*?)```/)
-  if (!m) return null
-  try {
-    const obj = JSON.parse(m[1].trim())
-    return obj && typeof obj === 'object' ? obj : null
-  } catch {
-    return null
-  }
+const STATE_KEYS = [
+  'time',
+  'age',
+  'name',
+  'gender',
+  'bloodline',
+  'identity',
+  'location',
+  'profession',
+  'wealth',
+  'family',
+  'socialStatus',
+  'magicAbility',
+  'combatAbility',
+  'potionHealing',
+  'skills',
+  'reputation',
+  'relations',
+  'faction',
+  'goal',
+  'worldEvents',
+  'rumors',
+  'wand',
+  'magicCapacity',
+  'control',
+  'affinity',
+  'mainSubjects',
+  'spells',
+  'potionLevel',
+  'occlumency',
+  'apparition',
+  'patronus',
+]
+
+function looksLikeState(obj) {
+  return STATE_KEYS.some((k) => k in obj)
 }
 
-// 去掉正文中的状态 JSON 块，返回干净的剧情文本
-export function stripStateBlock(text) {
-  return text.replace(/```json\s*[\s\S]*?```/g, '').trim()
+// 从文本末尾找最后一个 {...} 块（支持嵌套），用于识别 AI 输出的裸 JSON
+function findLastJsonObject(text) {
+  const lastBrace = text.lastIndexOf('}')
+  if (lastBrace === -1) return null
+  let depth = 0
+  for (let i = lastBrace; i >= 0; i--) {
+    const c = text[i]
+    if (c === '}') depth++
+    else if (c === '{') {
+      depth--
+      if (depth === 0) {
+        const raw = text.slice(i, lastBrace + 1)
+        try {
+          const obj = JSON.parse(raw)
+          return obj && typeof obj === 'object' ? { raw, obj } : null
+        } catch {
+          return null
+        }
+      }
+    }
+  }
+  return null
+}
+
+// 从完整回复中提取状态补丁 + 干净的剧情文本。
+// 支持 ```json 代码块 和 裸 JSON（AI 有时不遵守格式）。
+export function extractState(text) {
+  const codeBlock = text.match(/```json\s*([\s\S]*?)```/)
+  if (codeBlock) {
+    const cleaned = text.replace(codeBlock[0], '').trim()
+    try {
+      const obj = JSON.parse(codeBlock[1].trim())
+      return obj && typeof obj === 'object' ? { patch: obj, cleaned } : { patch: null, cleaned }
+    } catch {
+      return { patch: null, cleaned }
+    }
+  }
+  const bare = findLastJsonObject(text)
+  if (bare && looksLikeState(bare.obj)) {
+    const cleaned = text.replace(bare.raw, '').trim()
+    return { patch: bare.obj, cleaned }
+  }
+  return { patch: null, cleaned: text }
 }

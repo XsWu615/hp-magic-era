@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { SYSTEM_PROMPT } from '../engine/systemPrompt.js'
-import { buildMessages, streamChat, extractStatePatch } from '../engine/ai.js'
+import { buildMessages, streamChat, extractState } from '../engine/ai.js'
 import { buildInitialState, buildMagicState } from '../config/gameConfig.js'
 import { autoSave, autoLoad, clearSave, buildArchive } from '../engine/saveSystem.js'
 
@@ -99,8 +99,14 @@ export const useGame = create((set, get) => ({
           return { messages: msgs2 }
         })
       }
-      const patch = extractStatePatch(full)
+      const { patch, cleaned } = extractState(full)
       if (patch) get().updateState(patch)
+      set((s) => {
+        const msgs2 = [...s.messages]
+        const last = msgs2[msgs2.length - 1]
+        msgs2[msgs2.length - 1] = { ...last, content: cleaned }
+        return { messages: msgs2 }
+      })
       autoSave(buildArchive(get()))
     } catch (e) {
       const msg = e?.message || String(e)
