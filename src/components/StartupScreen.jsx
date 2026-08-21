@@ -13,6 +13,7 @@ import {
   DEFAULT_AGE,
 } from '../config/gameConfig.js'
 import { useGame } from '../store/gameStore.js'
+import LiquidGlass from './LiquidGlass.jsx'
 
 const findLabel = (list, id) => list.find((o) => o.id === id)?.label || id
 
@@ -244,9 +245,18 @@ export default function StartupScreen() {
           <OptionGroup label="模拟风格" options={STYLES} value={form.style} onChange={set('style')} />
         </div>
 
-        <button className="start-btn" type="button" disabled={!canStart} onClick={submit}>
-          {canStart ? '穿过魔法世界的经纬' : '请先输入姓名'}
-        </button>
+        <div className="start-btn-wrap">
+          <LiquidGlass
+            onClick={canStart ? submit : undefined}
+            cornerRadius={999}
+            padding="14px 52px"
+            style={{ position: 'absolute', top: '50%', left: '50%' }}
+          >
+            <span className={canStart ? 'start-btn-text' : 'start-btn-text start-btn-disabled'}>
+              {canStart ? '穿过魔法世界的经纬' : '请先输入姓名'}
+            </span>
+          </LiquidGlass>
+        </div>
       </div>
     </div>
   )

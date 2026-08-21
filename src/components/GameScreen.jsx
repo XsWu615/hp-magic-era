@@ -2,6 +2,7 @@ import ChatLog from './ChatLog.jsx'
 import InputBar from './InputBar.jsx'
 import StatusPanel from './StatusPanel.jsx'
 import SavePanel from './SavePanel.jsx'
+import LiquidGlass from './LiquidGlass.jsx'
 import { useGame } from '../store/gameStore.js'
 
 export default function GameScreen() {
@@ -19,9 +20,21 @@ export default function GameScreen() {
       <div className="game-main">
         <div className="story-col">
           <ChatLog />
-          <InputBar />
         </div>
-        <StatusPanel />
+        <LiquidGlass
+          cornerRadius={24}
+          padding="0"
+          style={{ position: 'absolute', top: '50%', left: 'calc(100% - 200px)' }}
+        >
+          <StatusPanel />
+        </LiquidGlass>
+        <LiquidGlass
+          cornerRadius={999}
+          padding="4px"
+          style={{ position: 'absolute', top: 'calc(100% - 64px)', left: '50%' }}
+        >
+          <InputBar />
+        </LiquidGlass>
       </div>
     </div>
   )
