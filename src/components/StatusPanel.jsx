@@ -19,6 +19,7 @@ const TABS = [
   { id: 'life', label: '人生' },
   { id: 'magic', label: '魔法' },
   { id: 'social', label: '社会' },
+  { id: 'chapters', label: '目录' },
   { id: 'world', label: '世界' },
 ]
 
@@ -124,6 +125,24 @@ export default function StatusPanel() {
             <div className="sdivider">性格内核</div>
             <Row k="关键词" v={character?.traits} />
             <Row k="模拟风格" v={character?.styleLabel} />
+          </>
+        )
+      case 'chapters':
+        return (
+          <>
+            {Array.isArray(state.chapters) && state.chapters.length ? (
+              state.chapters.map((c, i) => (
+                <div key={i} className="chapter-item">
+                  <div className="chapter-title">
+                    {c.time && <span className="chapter-time">{c.time}</span>}
+                    <span>{c.title}</span>
+                  </div>
+                  {c.summary && <div className="chapter-summary">{c.summary}</div>}
+                </div>
+              ))
+            ) : (
+              <div className="sval">暂无节点。重要的人生转折会被记录在这里。</div>
+            )}
           </>
         )
       default:

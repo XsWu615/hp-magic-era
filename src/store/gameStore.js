@@ -7,7 +7,12 @@ import { autoSave, autoLoad, clearSave, buildArchive } from '../engine/saveSyste
 function deepMerge(base, patch) {
   const out = Array.isArray(base) ? [...base] : { ...base }
   for (const [k, v] of Object.entries(patch)) {
-    if (
+    if (k === 'chapters' && Array.isArray(v)) {
+      // 目录节点：追加并去重（按 title）
+      const existing = new Set((base?.chapters || []).map((c) => c?.title))
+      const fresh = v.filter((c) => c && c.title && !existing.has(c.title))
+      out[k] = [...(base?.chapters || []), ...fresh]
+    } else if (
       v &&
       typeof v === 'object' &&
       !Array.isArray(v) &&

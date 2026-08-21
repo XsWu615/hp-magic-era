@@ -129,6 +129,7 @@ export function buildInitialState(character) {
     goal: character.goal || '尚未确定',
     worldEvents: [],
     rumors: [],
+    chapters: [],
   }
 }
 
