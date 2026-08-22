@@ -7,7 +7,7 @@ export default function ChatLog() {
   const messages = useGame((s) => s.messages)
   const streaming = useGame((s) => s.streaming)
   const ref = useRef(null)
-  const stickToBottom = useRef(true)
+  const stickToBottom = useRef(false)
 
   const handleScroll = () => {
     const el = ref.current
@@ -20,11 +20,16 @@ export default function ChatLog() {
     if (!el) return
     const last = messages[messages.length - 1]
     if (last?.role === 'user') {
-      // 用户刚发消息：强制滚到底
-      stickToBottom.current = true
-      el.scrollTop = el.scrollHeight
+      // 发送后：把刚发的那句话滚到视口顶部，回答在下方生成，不自动滚底
+      stickToBottom.current = false
+      const userEl = el.querySelector('.msg-user:last-of-type')
+      if (userEl) {
+        const cr = el.getBoundingClientRect()
+        const ur = userEl.getBoundingClientRect()
+        el.scrollTop += ur.top - cr.top - 12
+      }
     } else if (stickToBottom.current) {
-      // AI 流式输出：仅当用户本来就在底部时跟随
+      // 用户滑到底部后，AI 流式输出才跟随
       el.scrollTop = el.scrollHeight
     }
   }, [messages, streaming])
