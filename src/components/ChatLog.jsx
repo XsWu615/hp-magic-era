@@ -8,6 +8,7 @@ export default function ChatLog() {
   const streaming = useGame((s) => s.streaming)
   const ref = useRef(null)
   const stickToBottom = useRef(false)
+  const lastUserCount = useRef(0)
   const [atBottom, setAtBottom] = useState(true)
 
   const handleScroll = () => {
@@ -29,9 +30,12 @@ export default function ChatLog() {
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const last = messages[messages.length - 1]
-    if (last?.role === 'user') {
-      // 发送后：把刚发的那句话滚到视口顶部，回答在下方生成，不自动滚底
+    const userCount = messages.filter((m) => m.role === 'user').length
+    const isNewSend = userCount > lastUserCount.current
+    lastUserCount.current = userCount
+
+    if (isNewSend) {
+      // 发送后：把刚发的那句话滚到视口顶部，之后保持不动
       stickToBottom.current = false
       setAtBottom(false)
       const userEl = el.querySelector('.msg-user:last-of-type')
