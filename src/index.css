@@ -248,6 +248,14 @@ body {
 }
 
 /* 剧情流 */
+.chatlog-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .chatlog {
   flex: 1;
   min-height: 0;
@@ -256,6 +264,28 @@ body {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+.scroll-bottom-btn {
+  position: absolute;
+  bottom: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--gold);
+  background: rgba(11, 14, 23, 0.85);
+  color: var(--gold);
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.15s;
+}
+
+.scroll-bottom-btn:hover {
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.3);
 }
 
 .empty-hint {
@@ -648,6 +678,10 @@ body {
 
   .gamescreen.mobile .chatlog {
     padding: 18px 16px;
+  }
+
+  .gamescreen.mobile .scroll-bottom-btn {
+    bottom: 16px;
   }
 
   /* 移动端输入栏（流式，非液态玻璃浮动） */
