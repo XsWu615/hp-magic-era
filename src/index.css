@@ -595,23 +595,23 @@ body {
   right: 0;
   top: 44px;
   width: 300px;
-  background: var(--panel-solid);
-  border: 1px solid var(--panel-border);
+  background: #1c2540;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 14px;
   padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   z-index: 20;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
 }
 
 .save-drop button {
   padding: 10px 14px;
   border-radius: 10px;
-  border: 1px solid var(--panel-border);
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   cursor: pointer;
   font-size: 13px;
   font-family: var(--sans);
@@ -619,11 +619,12 @@ body {
 
 .save-drop button:hover {
   border-color: var(--gold);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .save-drop button.danger {
-  color: #e8a39b;
-  border-color: rgba(208, 101, 90, 0.4);
+  color: #f0b4ad;
+  border-color: rgba(208, 101, 90, 0.5);
 }
 
 .save-import {
@@ -636,15 +637,15 @@ body {
   resize: vertical;
   padding: 10px;
   border-radius: 10px;
-  border: 1px solid var(--panel-border);
-  background: rgba(0, 0, 0, 0.3);
-  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.45);
+  color: #ffffff;
   font-size: 12px;
   font-family: Consolas, monospace;
 }
 
 .save-msg {
-  color: var(--gold-soft);
+  color: var(--gold);
   font-size: 12px;
 }
 
