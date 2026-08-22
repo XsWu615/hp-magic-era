@@ -25,6 +25,7 @@ body,
 #root {
   margin: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -42,7 +43,8 @@ body {
 
 /* ---------- 启动界面 ---------- */
 .startup {
-  min-height: 100vh;
+  height: 100%;
+  overflow-y: auto;
   padding: 40px 24px 80px;
   display: flex;
   flex-direction: column;
@@ -639,6 +641,8 @@ body {
   .mobile-chat {
     flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
   }
 
