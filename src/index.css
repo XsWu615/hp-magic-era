@@ -257,6 +257,7 @@ body {
 }
 
 .chatlog {
+  position: relative;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -576,8 +577,8 @@ body {
 .tool-btn {
   padding: 8px 16px;
   border-radius: 10px;
-  border: 1px solid var(--panel-border);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(20, 26, 48, 0.85);
   color: var(--text);
   cursor: pointer;
   font-size: 13px;

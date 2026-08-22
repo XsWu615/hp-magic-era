@@ -35,15 +35,16 @@ export default function ChatLog() {
     lastUserCount.current = userCount
 
     if (isNewSend) {
-      // 发送后：把刚发的那句话滚到视口顶部，之后保持不动
+      // 发送后：把刚发的那句话滚到视口顶部，下方留白，之后保持不动
       stickToBottom.current = false
       setAtBottom(false)
-      const userEl = el.querySelector('.msg-user:last-of-type')
-      if (userEl) {
-        const cr = el.getBoundingClientRect()
-        const ur = userEl.getBoundingClientRect()
-        el.scrollTop += ur.top - cr.top - 12
-      }
+      requestAnimationFrame(() => {
+        const userEls = el.querySelectorAll('.msg-user')
+        const userEl = userEls[userEls.length - 1]
+        if (userEl) {
+          el.scrollTop = userEl.offsetTop - 12
+        }
+      })
     } else if (stickToBottom.current) {
       // 用户滑到底部后，AI 流式输出才跟随
       el.scrollTop = el.scrollHeight
