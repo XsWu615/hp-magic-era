@@ -33,7 +33,7 @@ function buildSystemPrompt(character, state) {
 - 姓名：${character.name}
 - 性别：${character.gender}
 - 年龄：${character.age}
-- 时代：${character.eraLabel || character.era}
+- 时代：${character.eraLabel || character.era}（严格对照上面的"时代时间线锚点"，人物生死与事件必须符合该时代，不得出现已死人物或未发生事件）
 - 血统：${character.bloodlineLabel || character.bloodline}
 - 出身：${character.identityLabel || character.identity}
 - 出生地/居住地：${character.location}
