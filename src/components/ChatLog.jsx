@@ -7,13 +7,30 @@ export default function ChatLog() {
   const messages = useGame((s) => s.messages)
   const streaming = useGame((s) => s.streaming)
   const ref = useRef(null)
+  const stickToBottom = useRef(true)
+
+  const handleScroll = () => {
+    const el = ref.current
+    if (!el) return
+    stickToBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 60
+  }
 
   useEffect(() => {
-    if (ref.current) ref.current.scrollTop = ref.current.scrollHeight
+    const el = ref.current
+    if (!el) return
+    const last = messages[messages.length - 1]
+    if (last?.role === 'user') {
+      // 用户刚发消息：强制滚到底
+      stickToBottom.current = true
+      el.scrollTop = el.scrollHeight
+    } else if (stickToBottom.current) {
+      // AI 流式输出：仅当用户本来就在底部时跟随
+      el.scrollTop = el.scrollHeight
+    }
   }, [messages, streaming])
 
   return (
-    <div className="chatlog" ref={ref}>
+    <div className="chatlog" ref={ref} onScroll={handleScroll}>
       {messages.length === 0 && (
         <div className="empty-hint">
           <p>世界已经运转了数百年，在你出生之前，在你死去之后。</p>
