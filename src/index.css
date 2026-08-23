@@ -232,6 +232,26 @@ body {
   border-bottom: 1px solid rgba(208, 101, 90, 0.4);
   color: #e8a39b;
   font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.retry-btn {
+  padding: 6px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(208, 101, 90, 0.5);
+  background: rgba(208, 101, 90, 0.2);
+  color: #f0b4ad;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--sans);
+  flex-shrink: 0;
+}
+
+.retry-btn:hover {
+  background: rgba(208, 101, 90, 0.3);
 }
 
 .game-main {
@@ -419,25 +439,24 @@ body {
   background: transparent;
 }
 
-.inputbar input {
+.inputbar textarea {
   width: 460px;
   flex: none;
   padding: 12px 20px;
-  border-radius: 999px;
+  border-radius: 18px;
   border: none;
   background: transparent;
   color: var(--text);
   font-size: 16px;
   outline: none;
   font-family: var(--sans);
+  resize: none;
+  line-height: 1.5;
+  max-height: 160px;
 }
 
-.inputbar input::placeholder {
+.inputbar textarea::placeholder {
   color: var(--text-dim);
-}
-
-.inputbar input:focus {
-  border-color: var(--gold);
 }
 
 .inputbar button {
@@ -571,6 +590,34 @@ body {
   line-height: 1.6;
 }
 
+.chapter-clickable {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.chapter-clickable:hover {
+  background: rgba(212, 175, 55, 0.07);
+  border-radius: 8px;
+  padding-left: 6px;
+}
+
+/* 能力星级 */
+.stars {
+  color: var(--gold);
+  letter-spacing: 1px;
+  font-size: 13px;
+}
+
+.stars-empty {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.sval-ability {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* 存档面板 */
 .savepanel {
   position: relative;
@@ -652,6 +699,49 @@ body {
   font-size: 12px;
 }
 
+.novel-btn {
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+}
+
+.save-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.save-slots-title {
+  color: var(--gold-soft);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.save-slot-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.save-slot-name {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.save-slot-row button {
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+.save-slot-row button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* ---------- 响应式：移动端（≤820px 与桌面端完全分开布局） ---------- */
 @media (max-width: 820px) {
   .form-grid {
@@ -700,13 +790,16 @@ body {
     border-top: 1px solid var(--panel-border);
   }
 
-  .gamescreen.mobile .inputbar input {
+  .gamescreen.mobile .inputbar textarea {
     width: auto;
     flex: 1;
     padding: 12px 16px;
-    border-radius: 999px;
+    border-radius: 14px;
     border: 1px solid var(--panel-border);
     background: rgba(0, 0, 0, 0.3);
+    resize: none;
+    line-height: 1.5;
+    max-height: 120px;
   }
 
   /* 移动端状态面板：底部抽屉 */

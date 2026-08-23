@@ -73,6 +73,36 @@ export async function* streamChat(messages, { signal } = {}) {
   }
 }
 
+// 非流式请求（用于摘要、小说导出等一次性任务）
+export async function chatOnce(messages, { maxTokens = 500, temperature = 0.5 } = {}) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 120000)
+  try {
+    const res = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MODEL,
+        messages,
+        temperature,
+        max_tokens: maxTokens,
+        stream: false,
+      }),
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(`DeepSeek API 错误 ${res.status}: ${text}`)
+    }
+    const data = await res.json()
+    return data.choices?.[0]?.message?.content || ''
+  } catch (e) {
+    throw new Error(e.name === 'AbortError' ? '请求超时' : e.message)
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 const STATE_KEYS = [
   'time',
   'age',

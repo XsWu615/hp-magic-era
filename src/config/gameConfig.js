@@ -130,6 +130,8 @@ export function buildInitialState(character) {
     worldEvents: [],
     rumors: [],
     chapters: [],
+    summary: '',
+    summarizedCount: 0,
   }
 }
 

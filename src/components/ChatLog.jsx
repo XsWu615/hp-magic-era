@@ -27,6 +27,21 @@ export default function ChatLog() {
     setAtBottom(true)
   }
 
+  const scrollTarget = useGame((s) => s.scrollTarget)
+
+  useEffect(() => {
+    if (!scrollTarget) return
+    const el = ref.current
+    if (!el) return
+    const msgs = el.querySelectorAll('.msg')
+    const target = msgs[scrollTarget.index]
+    if (target) {
+      stickToBottom.current = false
+      setAtBottom(false)
+      el.scrollTop = target.offsetTop - 12
+    }
+  }, [scrollTarget])
+
   useEffect(() => {
     const el = ref.current
     if (!el) return

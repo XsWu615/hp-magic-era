@@ -1,8 +1,11 @@
 import { create } from 'zustand'
 import { SYSTEM_PROMPT } from '../engine/systemPrompt.js'
-import { buildMessages, streamChat, extractState } from '../engine/ai.js'
+import { buildMessages, streamChat, extractState, chatOnce } from '../engine/ai.js'
 import { buildInitialState, buildMagicState } from '../config/gameConfig.js'
 import { autoSave, autoLoad, clearSave, buildArchive } from '../engine/saveSystem.js'
+
+// 保留最近 16 条消息原文，更早的压缩成摘要（UI 仍显示完整历史）
+const RECENT_COUNT = 16
 
 function deepMerge(base, patch) {
   const out = Array.isArray(base) ? [...base] : { ...base }
@@ -28,7 +31,7 @@ function deepMerge(base, patch) {
   return out
 }
 
-function buildSystemPrompt(character, state) {
+function buildSystemPrompt(character, state, summary) {
   const card = `# 玩家角色卡
 - 姓名：${character.name}
 - 性别：${character.gender}
@@ -46,20 +49,33 @@ function buildSystemPrompt(character, state) {
 - 人生目标：${character.goal || '尚未确定'}
 - 模拟风格：${character.styleLabel || character.style}
 
-# 当前游戏状态（JSON）
+${summary ? '# 早期剧情摘要（更早对话已压缩为下文，请据此保持剧情连贯）\n' + summary + '\n\n' : ''}# 当前游戏状态（JSON）
 ${JSON.stringify(state, null, 2)}
 
-请根据以上角色卡与状态，模拟世界并继续推进。`
+请根据以上角色卡、摘要与状态，模拟世界并继续推进。`
   return SYSTEM_PROMPT + '\n\n' + card
+}
+
+// 把对话压缩成摘要（增量：已有摘要 + 新对话）
+async function summarizeMessages(summary, messages) {
+  const content = messages
+    .map((m) => `${m.role === 'user' ? '玩家' : '剧情'}: ${m.content}`)
+    .join('\n')
+  const prompt = summary
+    ? `已有剧情摘要：\n${summary}\n\n请把下面的新对话并入摘要，输出更新后的完整摘要。要求：400字以内，保留关键事件、人物、选择、状态变化、伏笔，用第三人称叙事，不遗漏重要信息。\n\n新对话：\n${content}`
+    : `请把下面的对话压缩成剧情摘要。要求：400字以内，保留关键事件、人物、选择、状态变化、伏笔，用第三人称叙事。\n\n对话：\n${content}`
+  return await chatOnce([{ role: 'user', content: prompt }], { maxTokens: 600, temperature: 0.3 })
 }
 
 export const useGame = create((set, get) => ({
   phase: 'startup', // 'startup' | 'playing'
   character: null,
   state: null,
-  messages: [], // [{role:'user'|'assistant', content}]
+  messages: [], // 完整对话（UI 显示），[{role:'user'|'assistant', content}]
   streaming: false,
   error: null,
+  scrollTarget: null, // 目录跳转目标 { index, ts }
+  exporting: false,
 
   startGame(character) {
     const state = { ...buildInitialState(character), ...buildMagicState(character) }
@@ -80,12 +96,36 @@ export const useGame = create((set, get) => ({
     set({ error: e })
   },
 
+  scrollToMessage(index) {
+    set({ scrollTarget: { index, ts: Date.now() } })
+  },
+
   async sendMessage(content) {
     content = (content || '').trim()
     if (!content || get().streaming) return
     const { character, state, messages } = get()
-    const systemPrompt = buildSystemPrompt(character, state)
-    const msgs = buildMessages(systemPrompt, messages, content)
+
+    // 上下文压缩：把超出的旧消息压成摘要（UI 不变，仅影响发给 DeepSeek 的内容）
+    let summary = state.summary || ''
+    let summarizedCount = state.summarizedCount || 0
+    const allMessages = [...messages, { role: 'user', content }]
+    if (allMessages.length > RECENT_COUNT) {
+      const overflow = allMessages.length - RECENT_COUNT
+      if (overflow > summarizedCount) {
+        try {
+          const toSummarize = allMessages.slice(summarizedCount, overflow)
+          summary = await summarizeMessages(summary, toSummarize)
+          summarizedCount = overflow
+          set((s) => ({ state: { ...s.state, summary, summarizedCount } }))
+        } catch {
+          // 摘要失败则沿用旧摘要，不阻断主流程
+        }
+      }
+    }
+
+    const recentHistory = allMessages.slice(-(RECENT_COUNT - 1))
+    const systemPrompt = buildSystemPrompt(character, state, summary)
+    const msgs = buildMessages(systemPrompt, recentHistory, content)
 
     set((s) => ({
       messages: [...s.messages, { role: 'user', content }, { role: 'assistant', content: '' }],
@@ -105,7 +145,12 @@ export const useGame = create((set, get) => ({
         })
       }
       const { patch, cleaned } = extractState(full)
-      if (patch) get().updateState(patch)
+      if (patch) {
+        if (Array.isArray(patch.chapters)) {
+          patch.chapters = patch.chapters.map((c, i) => ({ ...c, msgIndex: messages.length + i }))
+        }
+        get().updateState(patch)
+      }
       set((s) => {
         const msgs2 = [...s.messages]
         const last = msgs2[msgs2.length - 1]
@@ -122,6 +167,61 @@ export const useGame = create((set, get) => ({
     }
   },
 
+  // 失败后重发最后一条用户消息
+  retry() {
+    const { messages, streaming } = get()
+    if (streaming) return
+    let idx = -1
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        idx = i
+        break
+      }
+    }
+    if (idx === -1) return
+    const content = messages[idx].content
+    set((s) => ({ messages: s.messages.slice(0, idx), error: null }))
+    get().sendMessage(content)
+  },
+
+  // 导出小说文本（去对话化）
+  async exportNovel() {
+    const { messages, character, exporting } = get()
+    if (exporting || messages.length === 0) return null
+    set({ exporting: true })
+    try {
+      const text = messages
+        .map((m) => `${m.role === 'user' ? '玩家' : '剧情'}: ${m.content}`)
+        .join('\n\n')
+      const prompt = `你是小说改写助手。请把下面的对话记录改写为连贯的第二人称小说文本（以"你"为主角）。要求：
+1. 去掉对话模式（"玩家说""剧情说"这类标签），改为流畅的小说叙事
+2. 保留所有关键情节、人物、选择、细节；人物原话可保留为引语
+3. 分段落，按剧情节点加小标题分章
+4. 不改变任何事实，不添加原文没有的内容
+
+书名：《哈利·波特·魔法纪元》
+主角：${character?.name || '玩家'}
+
+对话记录：
+${text}`
+
+      const novel = await chatOnce([{ role: 'user', content: prompt }], { maxTokens: 8000, temperature: 0.7 })
+      const blob = new Blob([novel], { type: 'text/plain;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${character?.name || '主角'}-魔法纪元小说.txt`
+      a.click()
+      URL.revokeObjectURL(url)
+      return novel
+    } catch (e) {
+      get().setError('导出失败：' + (e?.message || e))
+      return null
+    } finally {
+      set({ exporting: false })
+    }
+  },
+
   loadArchive(data) {
     set({
       phase: 'playing',
@@ -129,13 +229,22 @@ export const useGame = create((set, get) => ({
       state: data.state,
       messages: data.messages,
       error: null,
+      streaming: false,
     })
     autoSave(buildArchive(get()))
   },
 
   resetGame() {
     clearSave()
-    set({ phase: 'startup', character: null, state: null, messages: [], error: null, streaming: false })
+    set({
+      phase: 'startup',
+      character: null,
+      state: null,
+      messages: [],
+      error: null,
+      streaming: false,
+      exporting: false,
+    })
   },
 }))
 

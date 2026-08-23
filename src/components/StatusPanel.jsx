@@ -15,6 +15,39 @@ function Row({ k, v }) {
   )
 }
 
+function levelStars(text) {
+  if (!text) return 0
+  const s = String(text)
+  if (/无|待定|不会|未|没有/.test(s)) return 0
+  if (/入门|新手|初学|基础|低/.test(s)) return 1
+  if (/普通|一般|尚可|初级/.test(s)) return 2
+  if (/良好|熟练|不错|中等/.test(s)) return 3
+  if (/优秀|精通|高手|很强|出色/.test(s)) return 4
+  if (/大师|顶尖|传奇|神话|极致|宗师/.test(s)) return 5
+  return 2
+}
+
+function Stars({ level }) {
+  return (
+    <span className="stars">
+      {'★'.repeat(level)}
+      <span className="stars-empty">{'★'.repeat(5 - level)}</span>
+    </span>
+  )
+}
+
+function AbilityRow({ k, v }) {
+  return (
+    <div className="srow">
+      <span className="skey">{k}</span>
+      <span className="sval sval-ability">
+        <Stars level={levelStars(v)} />
+        <span>{v ?? '—'}</span>
+      </span>
+    </div>
+  )
+}
+
 const TABS = [
   { id: 'life', label: '人生' },
   { id: 'magic', label: '魔法' },
@@ -26,6 +59,7 @@ const TABS = [
 export default function StatusPanel() {
   const state = useGame((s) => s.state)
   const character = useGame((s) => s.character)
+  const scrollToMessage = useGame((s) => s.scrollToMessage)
   const [tab, setTab] = useState('life')
 
   if (!state) return null
@@ -46,9 +80,9 @@ export default function StatusPanel() {
             <Row k="家庭" v={state.family} />
             <Row k="社会地位" v={state.socialStatus} />
             <Row k="声望" v={state.reputation} />
-            <Row k="魔法能力" v={state.magicAbility} />
-            <Row k="战斗能力" v={state.combatAbility} />
-            <Row k="魔药/治疗" v={state.potionHealing} />
+            <AbilityRow k="魔法能力" v={state.magicAbility} />
+            <AbilityRow k="战斗能力" v={state.combatAbility} />
+            <AbilityRow k="魔药/治疗" v={state.potionHealing} />
             <Row k="当前目标" v={state.goal} />
           </>
         )
@@ -132,7 +166,13 @@ export default function StatusPanel() {
           <>
             {Array.isArray(state.chapters) && state.chapters.length ? (
               state.chapters.map((c, i) => (
-                <div key={i} className="chapter-item">
+                <div
+                  key={i}
+                  className={'chapter-item' + (c.msgIndex != null ? ' chapter-clickable' : '')}
+                  onClick={() => {
+                    if (c.msgIndex != null) scrollToMessage(c.msgIndex)
+                  }}
+                >
                   <div className="chapter-title">
                     {c.time && <span className="chapter-time">{c.time}</span>}
                     <span>{c.title}</span>

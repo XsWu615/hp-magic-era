@@ -1,10 +1,19 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useGame } from '../store/gameStore.js'
 
 export default function InputBar() {
   const [text, setText] = useState('')
   const sendMessage = useGame((s) => s.sendMessage)
   const streaming = useGame((s) => s.streaming)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const ta = ref.current
+    if (ta) {
+      ta.style.height = 'auto'
+      ta.style.height = Math.min(ta.scrollHeight, 160) + 'px'
+    }
+  }, [text])
 
   const submit = (e) => {
     e.preventDefault()
@@ -15,11 +24,19 @@ export default function InputBar() {
 
   return (
     <form className="inputbar" onSubmit={submit}>
-      <input
+      <textarea
+        ref={ref}
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={streaming ? '世界正在运转……' : '说出你的行动、对话或选择……'}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            submit(e)
+          }
+        }}
+        placeholder={streaming ? '世界正在运转……' : '说出你的行动、对话或选择……（Enter 发送，Shift+Enter 换行）'}
         disabled={streaming}
+        rows={1}
       />
       <button type="submit" disabled={streaming || !text.trim()}>
         施法

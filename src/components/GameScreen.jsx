@@ -19,6 +19,7 @@ function useIsMobile() {
 
 export default function GameScreen() {
   const error = useGame((s) => s.error)
+  const retry = useGame((s) => s.retry)
   const character = useGame((s) => s.character)
   const isMobile = useIsMobile()
   const [panelOpen, setPanelOpen] = useState(false)
@@ -34,7 +35,12 @@ export default function GameScreen() {
           </button>
           <SavePanel />
         </header>
-        {error && <div className="error-bar">⚠ {error}</div>}
+        {error && (
+          <div className="error-bar">
+            <span>⚠ {error}</span>
+            <button className="retry-btn" onClick={retry}>重试</button>
+          </div>
+        )}
         <div className="mobile-main">
           <div className="mobile-chat">
             <ChatLog />
@@ -56,7 +62,12 @@ export default function GameScreen() {
         <div className="char-name">{character?.name}</div>
         <SavePanel />
       </header>
-      {error && <div className="error-bar">⚠ {error}</div>}
+      {error && (
+          <div className="error-bar">
+            <span>⚠ {error}</span>
+            <button className="retry-btn" onClick={retry}>重试</button>
+          </div>
+        )}
       <div className="game-main">
         <div className="story-col">
           <ChatLog />

@@ -63,3 +63,52 @@ export function parseArchive(text) {
     return null
   }
 }
+
+// ---------- 多存档槽位 ----------
+const SLOT_COUNT = 3
+const slotKey = (i) => `hp-magic-era-slot-${i}`
+
+export function saveToSlot(slot, game) {
+  try {
+    const meta = {
+      name: game.character?.name || '未命名',
+      savedAt: new Date().toISOString(),
+      archive: buildArchive(game),
+    }
+    localStorage.setItem(slotKey(slot), JSON.stringify(meta))
+    return true
+  } catch {
+    return false
+  }
+}
+
+export function loadFromSlot(slot) {
+  try {
+    const raw = localStorage.getItem(slotKey(slot))
+    if (!raw) return null
+    const meta = JSON.parse(raw)
+    return meta.archive || null
+  } catch {
+    return null
+  }
+}
+
+export function listSlots() {
+  const result = []
+  for (let i = 0; i < SLOT_COUNT; i++) {
+    try {
+      const raw = localStorage.getItem(slotKey(i))
+      if (raw) {
+        const meta = JSON.parse(raw)
+        result.push({ slot: i, name: meta.name, savedAt: meta.savedAt })
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return result
+}
+
+export function getSlotCount() {
+  return SLOT_COUNT
+}
