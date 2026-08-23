@@ -56,15 +56,45 @@ ${JSON.stringify(state, null, 2)}
   return SYSTEM_PROMPT + '\n\n' + card
 }
 
-// 把对话压缩成摘要（增量：已有摘要 + 新对话）
+// 把对话压缩成摘要（增量：已有摘要 + 新对话），重点抓取影响后续剧情的要点
 async function summarizeMessages(summary, messages) {
   const content = messages
     .map((m) => `${m.role === 'user' ? '玩家' : '剧情'}: ${m.content}`)
     .join('\n')
+  const focus = `【摘要必须抓取的要点】
+1. 关键事件：按时间顺序发生了什么
+2. 人物：出现的人物、身份、与玩家的关系变化
+3. 玩家选择与行动：做了什么决定、造成什么后果
+4. 状态变化：位置、财富、技能、身份、学院、阵营等
+5. 伏笔与未完成事项：线索、任务、承诺、悬而未决的事
+6. 关键情报：会影响后续剧情的对话内容或信息`
   const prompt = summary
-    ? `已有剧情摘要：\n${summary}\n\n请把下面的新对话并入摘要，输出更新后的完整摘要。要求：400字以内，保留关键事件、人物、选择、状态变化、伏笔，用第三人称叙事，不遗漏重要信息。\n\n新对话：\n${content}`
-    : `请把下面的对话压缩成剧情摘要。要求：400字以内，保留关键事件、人物、选择、状态变化、伏笔，用第三人称叙事。\n\n对话：\n${content}`
-  return await chatOnce([{ role: 'user', content: prompt }], { maxTokens: 600, temperature: 0.3 })
+    ? `你是剧情摘要助手。请把新对话并入已有摘要，输出更新后的完整摘要。
+
+【已有摘要】
+${summary}
+
+【新对话】
+${content}
+
+${focus}
+
+【要求】
+- 第三人称，信息密度高，只写要点不写废话
+- 合并后 300-600 字，宁详勿略
+- 任何可能影响后续剧情的细节都不能丢`
+    : `你是剧情摘要助手。请把下面的对话压缩成剧情摘要。
+
+【对话】
+${content}
+
+${focus}
+
+【要求】
+- 第三人称，信息密度高，只写要点不写废话
+- 300-600 字，宁详勿略
+- 任何可能影响后续剧情的细节都不能丢`
+  return await chatOnce([{ role: 'user', content: prompt }], { maxTokens: 900, temperature: 0.3 })
 }
 
 export const useGame = create((set, get) => ({
@@ -193,7 +223,7 @@ export const useGame = create((set, get) => ({
       const text = messages
         .map((m) => `${m.role === 'user' ? '玩家' : '剧情'}: ${m.content}`)
         .join('\n\n')
-      const prompt = `你是小说改写助手。请把下面的对话记录改写为连贯的第二人称小说文本（以"你"为主角）。要求：
+      const prompt = `你是小说改写助手。请把下面的对话记录改写为连贯的第三人称小说文本（以"${character?.name || '主角'}"为主角，用"他/她"指代，不用"你"）。要求：
 1. 去掉对话模式（"玩家说""剧情说"这类标签），改为流畅的小说叙事
 2. 保留所有关键情节、人物、选择、细节；人物原话可保留为引语
 3. 分段落，按剧情节点加小标题分章
