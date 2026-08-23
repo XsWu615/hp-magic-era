@@ -136,6 +136,13 @@ export const useGame = create((set, get) => ({
     if (!content || get().streaming) return
     const { character, state, messages } = get()
 
+    // 立即显示用户消息 + 空回答占位（不等摘要/请求）
+    set((s) => ({
+      messages: [...s.messages, { role: 'user', content }, { role: 'assistant', content: '' }],
+      streaming: true,
+      error: null,
+    }))
+
     // 上下文压缩：把超出的旧消息压成摘要（UI 不变，仅影响发给 DeepSeek 的内容）
     let summary = state.summary || ''
     let summarizedCount = state.summarizedCount || 0
@@ -157,12 +164,6 @@ export const useGame = create((set, get) => ({
     const recentHistory = allMessages.slice(-(RECENT_COUNT - 1))
     const systemPrompt = buildSystemPrompt(character, state, summary)
     const msgs = buildMessages(systemPrompt, recentHistory, content)
-
-    set((s) => ({
-      messages: [...s.messages, { role: 'user', content }, { role: 'assistant', content: '' }],
-      streaming: true,
-      error: null,
-    }))
 
     let full = ''
     try {
