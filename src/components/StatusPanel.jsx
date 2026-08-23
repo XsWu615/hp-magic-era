@@ -33,26 +33,18 @@ function toRating(v) {
 
 function StarRating({ value }) {
   const v = Math.max(0, Math.min(5, toRating(value)))
-  // 每 0.2 分 = 1 个菱形（1 分 = 5 个菱形 = 一颗完整五角星）
-  const filled = Math.round(v * 5)
-  const groups = []
-  for (let g = 0; g < 5; g++) {
-    const diamonds = []
-    for (let d = 0; d < 5; d++) {
-      const idx = g * 5 + d
-      diamonds.push(
-        <span key={d} className={idx < filled ? 'diamond-filled' : 'diamond-empty'}>
-          ◆
-        </span>,
-      )
-    }
-    groups.push(
-      <span key={g} className="diamond-group">
-        {diamonds}
+  // 五角星按角填充：每颗星 5 个角，每 0.2 分点亮一个角
+  const stars = []
+  for (let i = 0; i < 5; i++) {
+    const fill = Math.max(0, Math.min(1, v - i)) // 这颗星的填充比例 0-1
+    stars.push(
+      <span key={i} className="star-unit" style={{ '--fill': fill }}>
+        <span className="star-unit-empty">★</span>
+        <span className="star-unit-fill">★</span>
       </span>,
     )
   }
-  return <span className="star-rating">{groups}</span>
+  return <span className="star-rating">{stars}</span>
 }
 
 function AbilityRow({ k, v }) {

@@ -601,23 +601,31 @@ body {
   padding-left: 6px;
 }
 
-/* 能力星级：菱形分段，每 0.2 分一个菱形（1 分=5 个菱形=一颗五角星） */
+/* 能力星级：五角星按角填充，每 0.2 分一个角（1 分=5 角=完整五角星） */
 .star-rating {
   display: inline-flex;
-  gap: 5px;
+  gap: 2px;
 }
 
-.diamond-group {
-  display: inline-flex;
-  letter-spacing: 0.5px;
+.star-unit {
+  position: relative;
+  display: inline-block;
+  font-size: 15px;
+  line-height: 1;
 }
 
-.diamond-filled {
-  color: var(--gold);
-}
-
-.diamond-empty {
+.star-unit-empty {
   color: rgba(255, 255, 255, 0.15);
+}
+
+.star-unit-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--gold);
+  overflow: hidden;
+  white-space: nowrap;
+  width: calc(var(--fill) * 100%);
 }
 
 /* 存档面板 */
