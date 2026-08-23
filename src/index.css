@@ -201,6 +201,8 @@ body {
 }
 
 .game-header {
+  position: relative;
+  z-index: 100;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -572,6 +574,7 @@ body {
 /* 存档面板 */
 .savepanel {
   position: relative;
+  z-index: 10;
 }
 
 .tool-btn {
