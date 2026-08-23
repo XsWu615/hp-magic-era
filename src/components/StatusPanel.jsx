@@ -15,23 +15,28 @@ function Row({ k, v }) {
   )
 }
 
-function levelStars(text) {
-  if (!text) return 0
-  const s = String(text)
-  if (/无|待定|不会|未|没有/.test(s)) return 0
-  if (/入门|新手|初学|基础|低/.test(s)) return 1
-  if (/普通|一般|尚可|初级/.test(s)) return 2
+function toRating(v) {
+  if (typeof v === 'number') return v
+  if (v == null || v === '') return 0
+  const n = Number(v)
+  if (!Number.isNaN(n)) return n
+  // 兼容旧文字存档
+  const s = String(v)
+  if (/无|不会|未|没有/.test(s)) return 0
+  if (/入门|新手|初学|基础/.test(s)) return 1
+  if (/普通|一般|尚可/.test(s)) return 2
   if (/良好|熟练|不错|中等/.test(s)) return 3
-  if (/优秀|精通|高手|很强|出色/.test(s)) return 4
-  if (/大师|顶尖|传奇|神话|极致|宗师/.test(s)) return 5
+  if (/优秀|精通|高手|出色/.test(s)) return 4
+  if (/大师|顶尖|传奇|神话|宗师/.test(s)) return 5
   return 2
 }
 
-function Stars({ level }) {
+function StarRating({ value }) {
+  const v = Math.max(0, Math.min(5, toRating(value)))
   return (
-    <span className="stars">
-      {'★'.repeat(level)}
-      <span className="stars-empty">{'★'.repeat(5 - level)}</span>
+    <span className="star-rating" style={{ '--rating': v }}>
+      <span className="star-rating-empty">★★★★★</span>
+      <span className="star-rating-fill">★★★★★</span>
     </span>
   )
 }
@@ -40,9 +45,8 @@ function AbilityRow({ k, v }) {
   return (
     <div className="srow">
       <span className="skey">{k}</span>
-      <span className="sval sval-ability">
-        <Stars level={levelStars(v)} />
-        <span>{v ?? '—'}</span>
+      <span className="sval">
+        <StarRating value={v} />
       </span>
     </div>
   )

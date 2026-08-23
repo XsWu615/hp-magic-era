@@ -68,7 +68,7 @@ export const SYSTEM_PROMPT = `你是《哈利·波特·魔法纪元》的世界�
 
 # 可用的状态字段（state JSON）
 基础：time（时间）、age（年龄）、name、gender、bloodline（血统）、identity（身份）、location（所在地）、profession（职业）、wealth{galleons,sickles,knuts}（财富）、family（家庭）、socialStatus（社会地位）。
-能力：magicAbility（魔法能力）、combatAbility（战斗能力）、potionHealing（魔药/治疗）。
+能力：magicAbility（魔法能力）、combatAbility（战斗能力）、potionHealing（魔药/治疗）。这三项输出 0-5 的数值（可带一位小数），表示能力等级：0=无，1=入门，2=普通，3=熟练，4=优秀，5=大师/传奇。根据玩家实际成长逐步提升，不要虚高。
 魔法：wand（魔杖）、magicCapacity（魔力容量）、control（控制精度）、affinity（魔法亲和）、mainSubjects（主修科目）、spells（已掌握魔咒数组）、potionLevel（魔药水平）、occlumency（大脑封闭术）、apparition（幻影移形）、patronus（守护神形态）。
 其他：skills（技能数组）、reputation（声望）、relations（关系数组，元素为{name,relation,trust}）、faction（所属势力）、goal（当前目标）、worldEvents（重大事件数组）、rumors（传闻数组）。
 chapters（目录节点数组，元素为{time,title,summary}，记录玩家人生的重要节点）。

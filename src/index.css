@@ -601,21 +601,27 @@ body {
   padding-left: 6px;
 }
 
-/* 能力星级 */
-.stars {
-  color: var(--gold);
+/* 能力星级（支持小数，AI 判定数值） */
+.star-rating {
+  position: relative;
+  display: inline-block;
+  font-size: 15px;
+  line-height: 1;
   letter-spacing: 1px;
-  font-size: 13px;
 }
 
-.stars-empty {
+.star-rating-empty {
   color: rgba(255, 255, 255, 0.15);
 }
 
-.sval-ability {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.star-rating-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--gold);
+  overflow: hidden;
+  white-space: nowrap;
+  width: calc(var(--rating) / 5 * 100%);
 }
 
 /* 存档面板 */
