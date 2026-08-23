@@ -78,9 +78,18 @@ export default function ChatLog() {
         {messages.map((m, i) => (
           <div key={i} className={'msg msg-' + m.role}>
             {m.role === 'assistant' ? (
-              <div className="markdown">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
-              </div>
+              m.content ? (
+                <div className="markdown">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                </div>
+              ) : (
+                <div className="typing-indicator">
+                  <span className="typing-dot" />
+                  <span className="typing-dot" />
+                  <span className="typing-dot" />
+                  <span className="typing-text">正在书写……</span>
+                </div>
+              )
             ) : (
               <div className="user-wrap">
                 <div className="user-bubble">{m.content}</div>
@@ -88,7 +97,6 @@ export default function ChatLog() {
             )}
           </div>
         ))}
-        {streaming && <div className="typing">✦</div>}
       </div>
       {!atBottom && (
         <button className="scroll-bottom-btn" type="button" onClick={scrollToBottom}>
