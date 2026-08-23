@@ -6,6 +6,7 @@ export default function InputBar() {
   const sendMessage = useGame((s) => s.sendMessage)
   const streaming = useGame((s) => s.streaming)
   const ref = useRef(null)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 820
 
   useEffect(() => {
     const ta = ref.current
@@ -34,7 +35,7 @@ export default function InputBar() {
             submit(e)
           }
         }}
-        placeholder={streaming ? '世界正在运转……' : '说出你的行动、对话或选择……（Enter 发送，Shift+Enter 换行）'}
+        placeholder={streaming ? '世界正在运转……' : isMobile ? '说出你的行动、对话或选择……' : '说出你的行动、对话或选择……（Enter 发送，Shift+Enter 换行）'}
         disabled={streaming}
         rows={1}
       />
