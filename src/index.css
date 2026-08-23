@@ -601,27 +601,23 @@ body {
   padding-left: 6px;
 }
 
-/* 能力星级（支持小数，AI 判定数值） */
+/* 能力星级：菱形分段，每 0.2 分一个菱形（1 分=5 个菱形=一颗五角星） */
 .star-rating {
-  position: relative;
-  display: inline-block;
-  font-size: 15px;
-  line-height: 1;
-  letter-spacing: 1px;
+  display: inline-flex;
+  gap: 5px;
 }
 
-.star-rating-empty {
-  color: rgba(255, 255, 255, 0.15);
+.diamond-group {
+  display: inline-flex;
+  letter-spacing: 0.5px;
 }
 
-.star-rating-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
+.diamond-filled {
   color: var(--gold);
-  overflow: hidden;
-  white-space: nowrap;
-  width: calc(var(--rating) / 5 * 100%);
+}
+
+.diamond-empty {
+  color: rgba(255, 255, 255, 0.15);
 }
 
 /* 存档面板 */
@@ -708,6 +704,43 @@ body {
 .novel-btn {
   border-color: var(--gold) !important;
   color: var(--gold) !important;
+}
+
+.novel-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.novel-progress-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.novel-progress-fill {
+  position: absolute;
+  height: 100%;
+  width: 40%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-soft));
+  animation: novel-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes novel-slide {
+  0% {
+    left: -40%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.novel-progress-text {
+  font-size: 12px;
+  color: var(--gold-soft);
 }
 
 .save-slots {

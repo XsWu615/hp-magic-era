@@ -106,6 +106,7 @@ export const useGame = create((set, get) => ({
   error: null,
   scrollTarget: null, // 目录跳转目标 { index, ts }
   exporting: false,
+  novelProgress: 0, // 小说导出已生成字数
 
   startGame(character) {
     const state = { ...buildInitialState(character), ...buildMagicState(character) }
@@ -214,11 +215,11 @@ export const useGame = create((set, get) => ({
     get().sendMessage(content)
   },
 
-  // 导出小说文本（去对话化）
+  // 导出小说文本（去对话化，流式 + 进度）
   async exportNovel() {
     const { messages, character, exporting } = get()
     if (exporting || messages.length === 0) return null
-    set({ exporting: true })
+    set({ exporting: true, novelProgress: 0 })
     try {
       const text = messages
         .map((m) => `${m.role === 'user' ? '玩家' : '剧情'}: ${m.content}`)
@@ -235,7 +236,11 @@ export const useGame = create((set, get) => ({
 对话记录：
 ${text}`
 
-      const novel = await chatOnce([{ role: 'user', content: prompt }], { maxTokens: 8000, temperature: 0.7 })
+      let novel = ''
+      for await (const delta of streamChat([{ role: 'user', content: prompt }], { maxTokens: 8000 })) {
+        novel += delta
+        set({ novelProgress: novel.length })
+      }
       const blob = new Blob([novel], { type: 'text/plain;charset=utf-8' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -248,7 +253,7 @@ ${text}`
       get().setError('导出失败：' + (e?.message || e))
       return null
     } finally {
-      set({ exporting: false })
+      set({ exporting: false, novelProgress: 0 })
     }
   },
 

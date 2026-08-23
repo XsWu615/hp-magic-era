@@ -5,6 +5,7 @@ import { exportArchive, parseArchive, saveToSlot, loadFromSlot, listSlots } from
 export default function SavePanel() {
   const game = useGame()
   const exporting = useGame((s) => s.exporting)
+  const novelProgress = useGame((s) => s.novelProgress)
   const [open, setOpen] = useState(false)
   const [importText, setImportText] = useState('')
   const [msg, setMsg] = useState('')
@@ -69,6 +70,14 @@ export default function SavePanel() {
           <button className="novel-btn" onClick={doExportNovel} disabled={exporting}>
             {exporting ? '生成中……' : '📖 导出小说文本'}
           </button>
+          {exporting && (
+            <div className="novel-progress">
+              <div className="novel-progress-bar">
+                <div className="novel-progress-fill" />
+              </div>
+              <span className="novel-progress-text">正在生成小说… 已 {novelProgress} 字</span>
+            </div>
+          )}
           <button onClick={doExport}>导出存档（JSON）</button>
 
           <div className="save-slots">

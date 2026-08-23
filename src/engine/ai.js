@@ -14,7 +14,7 @@ export function buildMessages(systemPrompt, history, userText) {
 }
 
 // 流式请求，逐段 yield 增量文本
-export async function* streamChat(messages, { signal } = {}) {
+export async function* streamChat(messages, { signal, maxTokens = 3000 } = {}) {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 180000)
 
@@ -27,7 +27,7 @@ export async function* streamChat(messages, { signal } = {}) {
         model: MODEL,
         messages,
         temperature: 0.85,
-        max_tokens: 3000,
+        max_tokens: maxTokens,
         stream: true,
       }),
       signal: controller.signal,
